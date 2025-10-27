@@ -24,10 +24,15 @@ pip install -r requirements.txt
 ## Run the API
 
 ```bash
+# development (debug)
 python app.py
+
+# production: run with gunicorn (bind to 0.0.0.0:8000)
+# - `app:app` points to the Flask `app` object in `app.py`
+gunicorn --bind 0.0.0.0:8000 app:app
 ```
 
-The server runs in debug mode by default (see `app.py`).
+The server runs in debug mode by default when started with `python app.py`. For production deployments prefer running under a WSGI server such as `gunicorn` (example above).
 
 ## Test the `/predict` endpoint
 
