@@ -42,4 +42,6 @@ def home():
     return "<h2>🩺 Heart Disease Prediction API is running successfully!</h2><p>Use POST /predict to make predictions.</p>"
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    # bind to 0.0.0.0 so the container/dev environment is accessible,
+    # and use port 5000 explicitly
+    app.run(host="0.0.0.0", port=5000)
