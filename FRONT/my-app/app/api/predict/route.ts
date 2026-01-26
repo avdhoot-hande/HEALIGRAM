@@ -2,7 +2,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json()
 
-    const response = await fetch("https://healigram.onrender.com/predict", {
+    const response = await fetch(process.env.BACKEND!, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
