@@ -18,6 +18,44 @@ export default function PredictionResult({ result }: PredictionResultProps) {
   const hasDisease = result.prediction === 1
   const confidence = result.confidence
 
+  // Determine risk level based on confidence
+  const getRiskLevel = (conf: number) => {
+    if (conf >= 70) return { level: "HIGH RISK", color: "text-red-700", bgColor: "bg-red-100", borderColor: "border-red-400" };
+    if (conf >= 40) return { level: "MEDIUM RISK", color: "text-orange-700", bgColor: "bg-orange-100", borderColor: "border-orange-400" };
+    return { level: "LOW RISK", color: "text-green-700", bgColor: "bg-green-100", borderColor: "border-green-400" };
+  };
+
+  // Determine model confidence level
+  const getModelConfidence = (conf: number) => {
+    if (conf >= 75) return { 
+      level: "HIGH CONFIDENCE", 
+      message: "Model is highly certain about this prediction",
+      color: "text-blue-700", 
+      bgColor: "bg-blue-100", 
+      borderColor: "border-blue-400",
+      emoji: "🎯"
+    };
+    if (conf >= 50) return { 
+      level: "MEDIUM CONFIDENCE", 
+      message: "Model has moderate certainty about this prediction",
+      color: "text-purple-700", 
+      bgColor: "bg-purple-100", 
+      borderColor: "border-purple-400",
+      emoji: "📊"
+    };
+    return { 
+      level: "LOW CONFIDENCE", 
+      message: "Model has lower certainty about this prediction",
+      color: "text-slate-700", 
+      bgColor: "bg-slate-100", 
+      borderColor: "border-slate-400",
+      emoji: "⚠️"
+    };
+  };
+
+  const riskLevel = getRiskLevel(confidence);
+  const modelConfidence = getModelConfidence(confidence);
+
   return (
     <div className="space-y-4">
       {/* Main Result Card */}
@@ -29,7 +67,10 @@ export default function PredictionResult({ result }: PredictionResultProps) {
           <h2 className="text-2xl font-bold mb-2 text-foreground">
             {hasDisease ? "Heart Disease Risk Detected" : "No Heart Disease Detected"}
           </h2>
-          <p className="text-lg font-semibold text-primary mb-4">Probability : {confidence}%</p>
+          
+          <p className="text-lg font-semibold text-primary mb-2">Probability : {confidence}%</p>
+          <p className="text-sm text-muted-foreground mb-4"> {modelConfidence.level}</p>
+          
           <div className="w-full bg-border rounded-full h-2 mb-4">
             <div
               className={`h-2 rounded-full transition-all ${hasDisease ? "bg-destructive" : "bg-accent"}`}
