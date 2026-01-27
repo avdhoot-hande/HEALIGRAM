@@ -9,22 +9,68 @@ app = Flask(__name__)
 CORS(app)
 
 # ===============================
-# Load Model Package (JOBLIB)
+# Load Model Package
 # ===============================
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(BASE_DIR, "heart_disease_xgb_ensemble_v2.pkl")
+MODEL_PATH = os.path.join(BASE_DIR, "heart_disease_ensemble_pro.pkl")
 
 model_data = joblib.load(MODEL_PATH)
 
 rf = model_data["models"]["random_forest"]
-xgb = model_data["models"]["xgboost"]
+xgb = model_data["models"]["xgb_calibrated"]
 imputer = model_data["imputer"]
-scaler = model_data["scaler"]
-feature_names = model_data["features"]
-threshold = model_data["threshold"]
+FEATURE_COLUMNS = model_data["features"]
+THRESHOLD = model_data["threshold"]
 
 print("✅ Model loaded successfully")
-print("Expected features:", feature_names)
+print("Expected features:", FEATURE_COLUMNS)
+
+# ===============================
+# Feature Engineering (SAME AS TRAINING)
+# ===============================
+def build_features(data: dict) -> pd.DataFrame:
+    df = pd.DataFrame([data])
+
+    # Age in years
+    df["age"] = df["age"] / 365.25 if df["age"].max() > 120 else df["age"]
+
+    # Age groups
+    df["age_group"] = pd.cut(
+        df["age"],
+        bins=[0, 40, 50, 60, 70, 120],
+        labels=["<40", "40-50", "50-60", "60-70", "70+"]
+    )
+    df = pd.get_dummies(df, columns=["age_group"], drop_first=True)
+
+    # BMI
+    df["bmi"] = df["weight"] / ((df["height"] / 100) ** 2)
+
+    df["bmi_category"] = pd.cut(
+        df["bmi"],
+        bins=[0, 18.5, 25, 30, 100],
+        labels=["underweight", "normal", "overweight", "obese"]
+    )
+    df = pd.get_dummies(df, columns=["bmi_category"], drop_first=True)
+
+    # Pulse pressure
+    df["pulse_pressure"] = df["ap_hi"] - df["ap_lo"]
+
+    # Hypertension stage
+    df["hypertension_stage"] = 0
+    df.loc[(df["ap_hi"] >= 140) | (df["ap_lo"] >= 90), "hypertension_stage"] = 1
+    df.loc[(df["ap_hi"] >= 160) | (df["ap_lo"] >= 100), "hypertension_stage"] = 2
+
+    # Interaction features
+    df["age_bmi_interaction"] = df["age"] * df["bmi"]
+    df["bp_pulse_interaction"] = df["pulse_pressure"] * df["ap_hi"]
+
+    # Align feature columns
+    for col in FEATURE_COLUMNS:
+        if col not in df.columns:
+            df[col] = 0
+
+    df = df[FEATURE_COLUMNS]
+    return df
 
 # ===============================
 # Prediction Route
@@ -35,41 +81,27 @@ def predict():
         data = request.json
         print("[DEBUG] Received:", data)
 
-        # Build input row with strict numeric casting
-        input_row = {}
-        for f in feature_names:
-            if f not in data:
-                raise ValueError(f"Missing feature: {f}")
-            input_row[f] = float(data[f])  # 🔥 FORCE numeric
+        df = build_features(data)
+        df_imp = imputer.transform(df)
 
-        df = pd.DataFrame([input_row])[feature_names]
-        print("[DEBUG] Input DF:\n", df)
-
-        # Preprocessing
-        df_imputed = imputer.transform(df)
-        df_scaled = scaler.transform(df_imputed)
-
-        # Predictions
-        rf_prob = rf.predict_proba(df_scaled)[0][1]
-        xgb_prob = xgb.predict_proba(df_imputed)[0][1]
+        rf_prob = rf.predict_proba(df_imp)[0][1]
+        xgb_prob = xgb.predict_proba(df_imp)[0][1]
 
         final_prob = (0.4 * rf_prob) + (0.6 * xgb_prob)
-        prediction = int(final_prob >= threshold)
+        prediction = int(final_prob >= THRESHOLD)
 
         return jsonify({
-            "prediction": int(prediction),
-            "confidence": round(float(final_prob) * 100, 2),
-            "rf_confidence": round(float(rf_prob) * 100, 2),
-            "xgb_confidence": round(float(xgb_prob) * 100, 2),
-            "threshold": float(threshold)
+            "prediction": prediction,
+            "confidence": round(final_prob * 100, 2),
+            "rf_confidence": round(rf_prob * 100, 2),
+            "xgb_confidence": round(xgb_prob * 100, 2),
+            "threshold": THRESHOLD
         })
 
-
     except Exception as e:
-        print("[ERROR]", str(e))  # 🔥 IMPORTANT
+        print("[ERROR]", str(e))
         return jsonify({
-            "error": str(e),
-            "expected_features": feature_names
+            "error": str(e)
         }), 400
 
 # ===============================
@@ -79,7 +111,7 @@ def predict():
 def home():
     return {
         "status": "🩺 Heart Disease Prediction API running",
-        "models": ["Random Forest", "XGBoost"]
+        "models": ["Random Forest", "XGBoost (Calibrated)"]
     }
 
 # ===============================

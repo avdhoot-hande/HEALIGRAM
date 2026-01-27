@@ -1,23 +1,22 @@
-export async function POST(request: Request) {
+import { NextResponse } from "next/server";
+
+export async function POST(req: Request) {
   try {
-    const body = await request.json()
+    const body = await req.json();
 
-    const response = await fetch(process.env.BACKEND!, {
+    const backendRes = await fetch("http://localhost:5000/predict", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
-    })
+    });
 
-    if (!response.ok) {
-      throw new Error(`Flask API error: ${response.statusText}`)
-    }
+    const data = await backendRes.json();
 
-    const data = await response.json()
-    return Response.json(data)
-  } catch (error) {
-    console.error("[v0] Prediction error:", error)
-    return Response.json({ error: "Failed to get prediction" }, { status: 500 })
+    return NextResponse.json(data, { status: backendRes.status });
+  } catch (err: any) {
+    return NextResponse.json(
+      { error: "Backend not reachable" },
+      { status: 500 }
+    );
   }
 }

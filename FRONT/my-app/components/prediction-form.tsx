@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 
@@ -36,16 +35,22 @@ export default function PredictionForm({ onSubmit, loading }: PredictionFormProp
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Convert form data to API format
+    // ✅ BACKEND-COMPATIBLE PAYLOAD
     const apiData = {
-      age: Number.parseInt(formData.age),
-      gender: formData.gender === "Male" ? 1 : 0,
-      height: Number.parseInt(formData.height),
-      weight: Number.parseInt(formData.weight),
-      ap_hi: Number.parseInt(formData.ap_hi),
-      ap_lo: Number.parseInt(formData.ap_lo),
-      cholesterol: Number.parseInt(formData.cholesterol),
-      gluc: Number.parseInt(formData.gluc),
+      // send age in DAYS (model trained this way)
+      age: Math.round(Number(formData.age) * 365.25),
+
+      // backend expects: 1 = male, 2 = female
+      gender: formData.gender === "Male" ? 1 : 2,
+
+      height: Number(formData.height),
+      weight: Number(formData.weight),
+      ap_hi: Number(formData.ap_hi),
+      ap_lo: Number(formData.ap_lo),
+
+      cholesterol: Number(formData.cholesterol),
+      gluc: Number(formData.gluc),
+
       smoke: formData.smoke === "Yes" ? 1 : 0,
       alco: formData.alco === "Yes" ? 1 : 0,
       active: formData.active === "Yes" ? 1 : 0,
@@ -56,8 +61,9 @@ export default function PredictionForm({ onSubmit, loading }: PredictionFormProp
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Age */}
       <div>
-        <label className="block text-sm font-medium text-foreground mb-1">Age (years)</label>
+        <label className="block text-sm font-medium mb-1">Age (years)</label>
         <input
           type="number"
           name="age"
@@ -66,27 +72,29 @@ export default function PredictionForm({ onSubmit, loading }: PredictionFormProp
           required
           min="1"
           max="120"
-          className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+          className="w-full px-3 py-2 border rounded-md"
           placeholder="e.g., 45"
         />
       </div>
 
+      {/* Gender */}
       <div>
-        <label className="block text-sm font-medium text-foreground mb-1">Gender</label>
+        <label className="block text-sm font-medium mb-1">Gender</label>
         <select
           name="gender"
           value={formData.gender}
           onChange={handleChange}
-          className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+          className="w-full px-3 py-2 border rounded-md"
         >
           <option>Male</option>
           <option>Female</option>
         </select>
       </div>
 
+      {/* Height / Weight */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1">Height (cm)</label>
+          <label className="block text-sm font-medium mb-1">Height (cm)</label>
           <input
             type="number"
             name="height"
@@ -95,12 +103,12 @@ export default function PredictionForm({ onSubmit, loading }: PredictionFormProp
             required
             min="100"
             max="250"
-            className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            placeholder="e.g., 175"
+            className="w-full px-3 py-2 border rounded-md"
           />
         </div>
+
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1">Weight (kg)</label>
+          <label className="block text-sm font-medium mb-1">Weight (kg)</label>
           <input
             type="number"
             name="weight"
@@ -109,15 +117,15 @@ export default function PredictionForm({ onSubmit, loading }: PredictionFormProp
             required
             min="30"
             max="300"
-            className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            placeholder="e.g., 75"
+            className="w-full px-3 py-2 border rounded-md"
           />
         </div>
       </div>
 
+      {/* BP */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1">Systolic BP (ap_hi)</label>
+          <label className="block text-sm font-medium mb-1">Systolic BP</label>
           <input
             type="number"
             name="ap_hi"
@@ -126,12 +134,12 @@ export default function PredictionForm({ onSubmit, loading }: PredictionFormProp
             required
             min="50"
             max="250"
-            className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            placeholder="e.g., 120"
+            className="w-full px-3 py-2 border rounded-md"
           />
         </div>
+
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1">Diastolic BP (ap_lo)</label>
+          <label className="block text-sm font-medium mb-1">Diastolic BP</label>
           <input
             type="number"
             name="ap_lo"
@@ -140,85 +148,45 @@ export default function PredictionForm({ onSubmit, loading }: PredictionFormProp
             required
             min="30"
             max="150"
-            className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            placeholder="e.g., 80"
+            className="w-full px-3 py-2 border rounded-md"
           />
         </div>
       </div>
 
+      {/* Cholesterol / Glucose */}
       <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-1">Cholesterol (1-3)</label>
-          <select
-            name="cholesterol"
-            value={formData.cholesterol}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-          >
-            <option value="1">Normal (1)</option>
-            <option value="2">Above Normal (2)</option>
-            <option value="3">High (3)</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-1">gluc (1-3)</label>
-          <select
-            name="gluc"
-            value={formData.gluc}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-          >
-            <option value="1">Normal (1)</option>
-            <option value="2">Above Normal (2)</option>
-            <option value="3">High (3)</option>
-          </select>
-        </div>
+        <select name="cholesterol" value={formData.cholesterol} onChange={handleChange}>
+          <option value="1">Cholesterol Normal</option>
+          <option value="2">Above Normal</option>
+          <option value="3">High</option>
+        </select>
+
+        <select name="gluc" value={formData.gluc} onChange={handleChange}>
+          <option value="1">Glucose Normal</option>
+          <option value="2">Above Normal</option>
+          <option value="3">High</option>
+        </select>
       </div>
 
+      {/* Lifestyle */}
       <div className="grid grid-cols-3 gap-3">
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-1">Smoke</label>
-          <select
-            name="smoke"
-            value={formData.smoke}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-          >
-            <option>Yes</option>
-            <option>No</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-1">Alcohol</label>
-          <select
-            name="alco"
-            value={formData.alco}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-          >
-            <option>Yes</option>
-            <option>No</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-1">Active</label>
-          <select
-            name="active"
-            value={formData.active}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-          >
-            <option>Yes</option>
-            <option>No</option>
-          </select>
-        </div>
+        <select name="smoke" value={formData.smoke} onChange={handleChange}>
+          <option>Yes</option>
+          <option>No</option>
+        </select>
+
+        <select name="alco" value={formData.alco} onChange={handleChange}>
+          <option>Yes</option>
+          <option>No</option>
+        </select>
+
+        <select name="active" value={formData.active} onChange={handleChange}>
+          <option>Yes</option>
+          <option>No</option>
+        </select>
       </div>
 
-      <Button
-        type="submit"
-        disabled={loading}
-        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-2"
-      >
+      <Button type="submit" disabled={loading} className="w-full">
         {loading ? "Analyzing..." : "Get Prediction"}
       </Button>
     </form>
