@@ -85,7 +85,14 @@ def predict():
         df_imp = imputer.transform(df)
 
         rf_prob = rf.predict_proba(df_imp)[0][1]
-        xgb_prob = float(xgb.predict(df_imp)[0])
+        
+        # Handle XGBoost prediction - use predict_proba for consistency
+        try:
+            xgb_prob = float(xgb.predict_proba(df_imp)[0][1])
+        except:
+            # Fallback: if predict_proba fails, try predict and normalize
+            xgb_pred = float(xgb.predict(df_imp)[0])
+            xgb_prob = xgb_pred if xgb_pred <= 1.0 else xgb_pred / 100.0
 
         final_prob = (0.4 * rf_prob) + (0.6 * xgb_prob)
         prediction = int(final_prob >= THRESHOLD)
