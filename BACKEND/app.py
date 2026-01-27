@@ -85,17 +85,62 @@ def predict():
         df_imp = imputer.transform(df)
 
         rf_prob = rf.predict_proba(df_imp)[0][1]
-        xgb_prob = xgb.predict_proba(df_imp)[0][1]
+        xgb_prob = float(xgb.predict(df_imp)[0])
 
         final_prob = (0.4 * rf_prob) + (0.6 * xgb_prob)
         prediction = int(final_prob >= THRESHOLD)
+
+        # Analyze risk factors with severity levels
+        critical_factors = []
+        moderate_factors = []
+        lifestyle_factors = []
+
+        # Convert age from days to years for proper comparison
+        age_years = data["age"] / 365.25
+
+        # CRITICAL FACTORS (Highly predictive of heart disease)
+        if data["ap_hi"] >= 140 or data["ap_lo"] >= 90:
+            critical_factors.append("High blood pressure")
+        
+        if age_years > 50:
+            critical_factors.append("Age above 50")
+        
+        if data.get("cholesterol", 1) > 1:
+            critical_factors.append("High cholesterol")
+        
+        if data.get("smoke", 0) == 1:
+            critical_factors.append("Smoking")
+
+        # MODERATE FACTORS (Significant contributors)
+        bmi = data["weight"] / ((data["height"] / 100) ** 2)
+        if bmi >= 30:
+            moderate_factors.append("Obesity (BMI ≥ 30)")
+        elif bmi >= 25:
+            moderate_factors.append("Overweight (BMI 25-29.9)")
+
+        if data.get("gluc", 1) > 1:
+            moderate_factors.append("High blood glucose")
+        
+        if data.get("alco", 0) == 1:
+            moderate_factors.append("Alcohol consumption")
+
+        # LIFESTYLE FACTORS (Contributing factors)
+        if data.get("active", 1) == 0:
+            lifestyle_factors.append("Physical inactivity")
+
+        # Combine all factors
+        risk_factors = critical_factors + moderate_factors + lifestyle_factors
 
         return jsonify({
             "prediction": prediction,
             "confidence": round(final_prob * 100, 2),
             "rf_confidence": round(rf_prob * 100, 2),
             "xgb_confidence": round(xgb_prob * 100, 2),
-            "threshold": THRESHOLD
+            "threshold": THRESHOLD,
+            "risk_factors": risk_factors,
+            "critical_factors": critical_factors,
+            "moderate_factors": moderate_factors,
+            "lifestyle_factors": lifestyle_factors
         })
 
     except Exception as e:

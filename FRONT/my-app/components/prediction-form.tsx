@@ -60,133 +60,206 @@ export default function PredictionForm({ onSubmit, loading }: PredictionFormProp
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {/* Age */}
-      <div>
-        <label className="block text-sm font-medium mb-1">Age (years)</label>
-        <input
-          type="number"
-          name="age"
-          value={formData.age}
-          onChange={handleChange}
-          required
-          min="1"
-          max="120"
-          className="w-full px-3 py-2 border rounded-md"
-          placeholder="e.g., 45"
-        />
-      </div>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Personal Information Section */}
+      <div className="space-y-4">
+        
+        <div className="grid grid-cols-2 gap-4">
+          {/* Age */}
+          <div className="space-y-2">
+            <label htmlFor="age" className="text-sm font-medium text-foreground block">Age <span className="text-destructive">*</span></label>
+            <input
+              id="age"
+              type="number"
+              name="age"
+              value={formData.age}
+              onChange={handleChange}
+              required
+              min="1"
+              max="120"
+              className="w-full px-3 py-2 bg-input border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition"
+              placeholder="e.g., 45"
+            />
+          </div>
 
-      {/* Gender */}
-      <div>
-        <label className="block text-sm font-medium mb-1">Gender</label>
-        <select
-          name="gender"
-          value={formData.gender}
-          onChange={handleChange}
-          className="w-full px-3 py-2 border rounded-md"
-        >
-          <option>Male</option>
-          <option>Female</option>
-        </select>
-      </div>
-
-      {/* Height / Weight */}
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium mb-1">Height (cm)</label>
-          <input
-            type="number"
-            name="height"
-            value={formData.height}
-            onChange={handleChange}
-            required
-            min="100"
-            max="250"
-            className="w-full px-3 py-2 border rounded-md"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Weight (kg)</label>
-          <input
-            type="number"
-            name="weight"
-            value={formData.weight}
-            onChange={handleChange}
-            required
-            min="30"
-            max="300"
-            className="w-full px-3 py-2 border rounded-md"
-          />
+          {/* Gender */}
+          <div className="space-y-2">
+            <label htmlFor="gender" className="text-sm font-medium text-foreground block">Gender <span className="text-destructive">*</span></label>
+            <select
+              id="gender"
+              name="gender"
+              value={formData.gender}
+              onChange={handleChange}
+              className="w-full px-3 py-2 bg-input border border-input rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition cursor-pointer"
+            >
+              <option>Male</option>
+              <option>Female</option>
+            </select>
+          </div>
         </div>
       </div>
 
-      {/* BP */}
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium mb-1">Systolic BP</label>
-          <input
-            type="number"
-            name="ap_hi"
-            value={formData.ap_hi}
-            onChange={handleChange}
-            required
-            min="50"
-            max="250"
-            className="w-full px-3 py-2 border rounded-md"
-          />
+      {/* Physical Measurements Section */}
+      <div className="space-y-4">
+        
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label htmlFor="height" className="text-sm font-medium text-foreground block">Height (cm) <span className="text-destructive">*</span></label>
+            <input
+              id="height"
+              type="number"
+              name="height"
+              value={formData.height}
+              onChange={handleChange}
+              required
+              min="100"
+              max="250"
+              className="w-full px-3 py-2 bg-input border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition"
+              placeholder="e.g., 175"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="weight" className="text-sm font-medium text-foreground block">Weight (kg) <span className="text-destructive">*</span></label>
+            <input
+              id="weight"
+              type="number"
+              name="weight"
+              value={formData.weight}
+              onChange={handleChange}
+              required
+              min="30"
+              max="300"
+              className="w-full px-3 py-2 bg-input border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition"
+              placeholder="e.g., 75"
+            />
+          </div>
         </div>
+      </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-1">Diastolic BP</label>
-          <input
-            type="number"
-            name="ap_lo"
-            value={formData.ap_lo}
-            onChange={handleChange}
-            required
-            min="30"
-            max="150"
-            className="w-full px-3 py-2 border rounded-md"
-          />
+      {/* Blood Pressure Section */}
+      <div className="space-y-4">
+        
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label htmlFor="ap_hi" className="text-sm font-medium text-foreground block">Systolic (mmHg) <span className="text-destructive">*</span></label>
+            <input
+              id="ap_hi"
+              type="number"
+              name="ap_hi"
+              value={formData.ap_hi}
+              onChange={handleChange}
+              required
+              min="50"
+              max="250"
+              className="w-full px-3 py-2 bg-input border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition"
+              placeholder="e.g., 120"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="ap_lo" className="text-sm font-medium text-foreground block">Diastolic (mmHg) <span className="text-destructive">*</span></label>
+            <input
+              id="ap_lo"
+              type="number"
+              name="ap_lo"
+              value={formData.ap_lo}
+              onChange={handleChange}
+              required
+              min="30"
+              max="150"
+              className="w-full px-3 py-2 bg-input border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition"
+              placeholder="e.g., 80"
+            />
+          </div>
         </div>
       </div>
 
-      {/* Cholesterol / Glucose */}
-      <div className="grid grid-cols-2 gap-4">
-        <select name="cholesterol" value={formData.cholesterol} onChange={handleChange}>
-          <option value="1">Cholesterol Normal</option>
-          <option value="2">Above Normal</option>
-          <option value="3">High</option>
-        </select>
+      {/* Lab Results Section */}
+      <div className="space-y-4">
+        
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label htmlFor="cholesterol" className="text-sm font-medium text-foreground block">Cholesterol Level</label>
+            <select 
+              id="cholesterol"
+              name="cholesterol" 
+              value={formData.cholesterol} 
+              onChange={handleChange}
+              className="w-full px-3 py-2 bg-input border border-input rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition cursor-pointer"
+            >
+              <option value="1">Normal</option>
+              <option value="2">Above Normal</option>
+              <option value="3">High</option>
+            </select>
+          </div>
 
-        <select name="gluc" value={formData.gluc} onChange={handleChange}>
-          <option value="1">Glucose Normal</option>
-          <option value="2">Above Normal</option>
-          <option value="3">High</option>
-        </select>
+          <div className="space-y-2">
+            <label htmlFor="gluc" className="text-sm font-medium text-foreground block">Glucose Level</label>
+            <select 
+              id="gluc"
+              name="gluc" 
+              value={formData.gluc} 
+              onChange={handleChange}
+              className="w-full px-3 py-2 bg-input border border-input rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition cursor-pointer"
+            >
+              <option value="1">Normal</option>
+              <option value="2">Above Normal</option>
+              <option value="3">High</option>
+            </select>
+          </div>
+        </div>
       </div>
 
-      {/* Lifestyle */}
-      <div className="grid grid-cols-3 gap-3">
-        <select name="smoke" value={formData.smoke} onChange={handleChange}>
-          <option>Yes</option>
-          <option>No</option>
-        </select>
+      {/* Lifestyle Factors Section */}
+      <div className="space-y-4">
+        
+        <div className="grid grid-cols-3 gap-3">
+          <div className="space-y-2">
+            <label htmlFor="smoke" className="text-sm font-medium text-foreground block">Smoking</label>
+            <select 
+              id="smoke"
+              name="smoke" 
+              value={formData.smoke} 
+              onChange={handleChange}
+              className="w-full px-3 py-2 bg-input border border-input rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition cursor-pointer"
+            >
+              <option>Yes</option>
+              <option>No</option>
+            </select>
+          </div>
 
-        <select name="alco" value={formData.alco} onChange={handleChange}>
-          <option>Yes</option>
-          <option>No</option>
-        </select>
+          <div className="space-y-2">
+            <label htmlFor="alco" className="text-sm font-medium text-foreground block">Alcohol</label>
+            <select 
+              id="alco"
+              name="alco" 
+              value={formData.alco} 
+              onChange={handleChange}
+              className="w-full px-3 py-2 bg-input border border-input rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition cursor-pointer"
+            >
+              <option>Yes</option>
+              <option>No</option>
+            </select>
+          </div>
 
-        <select name="active" value={formData.active} onChange={handleChange}>
-          <option>Yes</option>
-          <option>No</option>
-        </select>
+          <div className="space-y-2">
+            <label htmlFor="active" className="text-sm font-medium text-foreground block">Active</label>
+            <select 
+              id="active"
+              name="active" 
+              value={formData.active} 
+              onChange={handleChange}
+              className="w-full px-3 py-2 bg-input border border-input rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition cursor-pointer"
+            >
+              <option>Yes</option>
+              <option>No</option>
+            </select>
+          </div>
+        </div>
       </div>
 
-      <Button type="submit" disabled={loading} className="w-full">
+      <Button type="submit" disabled={loading} className="w-full mt-8">
         {loading ? "Analyzing..." : "Get Prediction"}
       </Button>
     </form>

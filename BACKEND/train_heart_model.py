@@ -120,6 +120,7 @@ rf = RandomForestClassifier(
 )
 
 xgb = XGBClassifier(
+    objective="binary:logistic",
     n_estimators=600,
     max_depth=8,
     learning_rate=0.03,

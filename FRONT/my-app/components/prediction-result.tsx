@@ -6,8 +6,13 @@ interface PredictionResultProps {
   result: {
     prediction: number
     confidence: number
+    risk_factors?: string[]
+    critical_factors?: string[]
+    moderate_factors?: string[]
+    lifestyle_factors?: string[]
   }
 }
+
 
 export default function PredictionResult({ result }: PredictionResultProps) {
   const hasDisease = result.prediction === 1
@@ -24,7 +29,7 @@ export default function PredictionResult({ result }: PredictionResultProps) {
           <h2 className="text-2xl font-bold mb-2 text-foreground">
             {hasDisease ? "Heart Disease Risk Detected" : "No Heart Disease Detected"}
           </h2>
-          <p className="text-lg font-semibold text-primary mb-4">Confidence: {confidence}%</p>
+          <p className="text-lg font-semibold text-primary mb-4">Probability : {confidence}%</p>
           <div className="w-full bg-border rounded-full h-2 mb-4">
             <div
               className={`h-2 rounded-full transition-all ${hasDisease ? "bg-destructive" : "bg-accent"}`}
@@ -33,6 +38,31 @@ export default function PredictionResult({ result }: PredictionResultProps) {
           </div>
         </div>
       </Card>
+
+      {/* All Risk Factors Card - Single Yellow Display */}
+      {result.risk_factors && result.risk_factors.length > 0 && (
+        <Card className="p-6 border-2 border-yellow-500 bg-yellow-50">
+          <h3 className="text-lg font-bold mb-4 text-yellow-800 flex items-center gap-2">⚡ Identified Risk Factors</h3>
+          <ul className="space-y-3">
+            {result.risk_factors.map((factor, index) => {
+              // Determine if this is a critical factor
+              const isCritical = result.critical_factors?.includes(factor);
+              const isModerate = result.moderate_factors?.includes(factor);
+              
+              return (
+                <li key={index} className="flex gap-3">
+                  <span className={`font-bold text-lg ${
+                    isCritical ? "text-red-600" : isModerate ? "text-orange-600" : "text-yellow-600"
+                  }`}>
+                    {isCritical ? "🔴" : isModerate ? "🟠" : "🟡"}
+                  </span>
+                  <span className="text-foreground">{factor}</span>
+                </li>
+              );
+            })}
+          </ul>
+        </Card>
+      )}
 
       {/* Recommendations Card */}
       <Card className="p-6 border border-border">
