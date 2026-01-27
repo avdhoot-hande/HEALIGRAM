@@ -1,9 +1,8 @@
-Flask>=2.0
-flask-cors>=3.0
-pandas>=1.5
-numpy>=1.24
-scikit-learn>=1.2
-# Production WSGI server
-gunicorn>=20.1
-# Optional (if you use pickle/joblib interchangeably)
-# joblib>=1.2
+flask
+flask-cors
+gunicorn
+numpy
+pandas
+scikit-learn==1.7.2
+joblib
+xgboost==2.0.3
