@@ -1,47 +1,89 @@
 from flask import Flask, request, jsonify
-import pickle
+import joblib
 import numpy as np
 import pandas as pd
 from flask_cors import CORS
+import os
 
 app = Flask(__name__)
-CORS(app)  # allow frontend to talk to backend
+CORS(app)
 
-# ============ LOAD MODEL ============
-with open("logistic_model.pkl", "rb") as f:
-    model_data = pickle.load(f)
+# ===============================
+# Load Model Package (JOBLIB)
+# ===============================
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, "heart_disease_xgb_ensemble_v2.pkl")
 
-model = model_data["model"]
+model_data = joblib.load(MODEL_PATH)
+
+rf = model_data["models"]["random_forest"]
+xgb = model_data["models"]["xgboost"]
+imputer = model_data["imputer"]
 scaler = model_data["scaler"]
 feature_names = model_data["features"]
+threshold = model_data["threshold"]
 
+print("✅ Model loaded successfully")
+print("Expected features:", feature_names)
+
+# ===============================
+# Prediction Route
+# ===============================
 @app.route("/predict", methods=["POST"])
 def predict():
     try:
         data = request.json
         print("[DEBUG] Received:", data)
 
-        # Ensure all features are present
-        input_data = [data.get(f, 0) for f in feature_names]
-        df = pd.DataFrame([input_data], columns=feature_names)
-        scaled_input = scaler.transform(df)
+        # Build input row with strict numeric casting
+        input_row = {}
+        for f in feature_names:
+            if f not in data:
+                raise ValueError(f"Missing feature: {f}")
+            input_row[f] = float(data[f])  # 🔥 FORCE numeric
 
-        pred = model.predict(scaled_input)[0]
-        prob = model.predict_proba(scaled_input)[0][1]
+        df = pd.DataFrame([input_row])[feature_names]
+        print("[DEBUG] Input DF:\n", df)
 
-        result = {
-            "prediction": int(pred),
-            "confidence": round(float(prob) * 100, 2)
-        }
-        return jsonify(result)
+        # Preprocessing
+        df_imputed = imputer.transform(df)
+        df_scaled = scaler.transform(df_imputed)
+
+        # Predictions
+        rf_prob = rf.predict_proba(df_scaled)[0][1]
+        xgb_prob = xgb.predict_proba(df_imputed)[0][1]
+
+        final_prob = (0.4 * rf_prob) + (0.6 * xgb_prob)
+        prediction = int(final_prob >= threshold)
+
+        return jsonify({
+            "prediction": int(prediction),
+            "confidence": round(float(final_prob) * 100, 2),
+            "rf_confidence": round(float(rf_prob) * 100, 2),
+            "xgb_confidence": round(float(xgb_prob) * 100, 2),
+            "threshold": float(threshold)
+        })
+
+
     except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        print("[ERROR]", str(e))  # 🔥 IMPORTANT
+        return jsonify({
+            "error": str(e),
+            "expected_features": feature_names
+        }), 400
 
+# ===============================
+# Health Check
+# ===============================
 @app.route("/")
 def home():
-    return "<h2>🩺 Heart Disease Prediction API is running successfully!</h2><p>Use POST /predict to make predictions.</p>"
+    return {
+        "status": "🩺 Heart Disease Prediction API running",
+        "models": ["Random Forest", "XGBoost"]
+    }
 
+# ===============================
+# Run Server
+# ===============================
 if __name__ == "__main__":
-    # bind to 0.0.0.0 so the container/dev environment is accessible,
-    # and use port 5000 explicitly
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port=5000, debug=True)

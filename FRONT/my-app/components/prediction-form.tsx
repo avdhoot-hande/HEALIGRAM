@@ -19,7 +19,7 @@ export default function PredictionForm({ onSubmit, loading }: PredictionFormProp
     ap_hi: "",
     ap_lo: "",
     cholesterol: "1",
-    glucose: "1",
+    gluc: "1",
     smoke: "No",
     alco: "No",
     active: "Yes",
@@ -45,7 +45,7 @@ export default function PredictionForm({ onSubmit, loading }: PredictionFormProp
       ap_hi: Number.parseInt(formData.ap_hi),
       ap_lo: Number.parseInt(formData.ap_lo),
       cholesterol: Number.parseInt(formData.cholesterol),
-      glucose: Number.parseInt(formData.glucose),
+      gluc: Number.parseInt(formData.gluc),
       smoke: formData.smoke === "Yes" ? 1 : 0,
       alco: formData.alco === "Yes" ? 1 : 0,
       active: formData.active === "Yes" ? 1 : 0,
@@ -161,10 +161,10 @@ export default function PredictionForm({ onSubmit, loading }: PredictionFormProp
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1">Glucose (1-3)</label>
+          <label className="block text-sm font-medium text-foreground mb-1">gluc (1-3)</label>
           <select
-            name="glucose"
-            value={formData.glucose}
+            name="gluc"
+            value={formData.gluc}
             onChange={handleChange}
             className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
           >
