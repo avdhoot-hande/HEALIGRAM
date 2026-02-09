@@ -6,8 +6,13 @@ import { Footer } from "@/components/footer"
 import { Card } from "@/components/ui/card"
 import PredictionForm from "@/components/prediction-form"
 import PredictionResult from "@/components/prediction-result"
+import { useLanguage } from "@/context/LanguageContext"
+import { translations } from "@/lib/translations"
 
 export default function Predict() {
+  const { language } = useLanguage()
+  const t = translations[language]
+
   const [result, setResult] = useState<{
     prediction: number
     confidence: number
@@ -16,9 +21,11 @@ export default function Predict() {
     moderate_factors?: string[]
     lifestyle_factors?: string[]
   } | null>(null)
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [backendStatus, setBackendStatus] = useState<"checking" | "connected" | "error">("checking")
+  const [backendStatus, setBackendStatus] =
+    useState<"checking" | "connected" | "error">("checking")
 
   // Check backend connection on mount
   useEffect(() => {
@@ -40,52 +47,45 @@ export default function Predict() {
             alco: 0,
             active: 1,
           }),
-        });
+        })
 
         if (response.ok) {
-          setBackendStatus("connected");
+          setBackendStatus("connected")
         } else {
-          setBackendStatus("error");
+          setBackendStatus("error")
         }
       } catch (err) {
-        setBackendStatus("error");
-        console.error("Backend check failed:", err);
+        setBackendStatus("error")
+        console.error("Backend check failed:", err)
       }
-    };
+    }
 
-    checkBackend();
-  }, []);
+    checkBackend()
+  }, [])
 
   const handleSubmit = async (formData: Record<string, any>) => {
     setLoading(true)
     setError(null)
+
     try {
-      console.log("[Predict] Submitting form data:", formData);
-      
       const response = await fetch("/api/predict", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       })
 
-      console.log("[Predict] Response status:", response.status);
-
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMsg = errorData.error || "Prediction failed";
-        console.error("[Predict] Error response:", errorData);
-        throw new Error(errorMsg);
+        const errorData = await response.json().catch(() => ({}))
+        const errorMsg = errorData.error || "Prediction failed"
+        throw new Error(errorMsg)
       }
 
       const data = await response.json()
-      console.log("[Predict] Success:", data);
       setResult(data)
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : "Unknown error occurred";
-      console.error("Error:", errorMsg)
-      setError(errorMsg);
+      const errorMsg =
+        error instanceof Error ? error.message : "Unknown error occurred"
+      setError(errorMsg)
       alert(`Failed to get prediction: ${errorMsg}`)
     } finally {
       setLoading(false)
@@ -98,22 +98,32 @@ export default function Predict() {
 
       <main className="flex-1">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">Heart Disease Prediction</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
+            {t.predictTitle}
+          </h1>
+
           <p className="text-lg text-muted-foreground mb-12">
-            Fill in your clinical information below to get an instant prediction.
+            {t.predictSubtitle}
           </p>
 
           {/* Backend Status Indicator */}
           <div className="mb-6 flex items-center gap-2">
-            <div className={`w-3 h-3 rounded-full ${
-              backendStatus === "connected" ? "bg-green-500" :
-              backendStatus === "error" ? "bg-red-500" :
-              "bg-yellow-500"
-            }`}></div>
+            <div
+              className={`w-3 h-3 rounded-full ${
+                backendStatus === "connected"
+                  ? "bg-green-500"
+                  : backendStatus === "error"
+                  ? "bg-red-500"
+                  : "bg-yellow-500"
+              }`}
+            ></div>
+
             <span className="text-sm text-muted-foreground">
-              {backendStatus === "connected" ? "✓ Backend Connected" :
-              backendStatus === "error" ? "✗ Backend Error - Check console" :
-              "⚙ Checking backend..."}
+              {backendStatus === "connected"
+                ? t.backendConnected
+                : backendStatus === "error"
+                ? t.backendError
+                : t.backendChecking}
             </span>
           </div>
 
@@ -131,16 +141,22 @@ export default function Predict() {
                 <Card className="p-8 border border-border flex items-center justify-center min-h-96">
                   <div className="text-center">
                     <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
-                    <p className="text-muted-foreground">Analyzing your data...</p>
+                    <p className="text-muted-foreground">
+                      {t.loadingAnalysis}
+                    </p>
                   </div>
                 </Card>
               ) : error ? (
                 <Card className="p-8 border border-border border-red-500 bg-red-50">
                   <div className="text-center">
                     <div className="text-4xl mb-4">❌</div>
-                    <p className="text-red-700 font-semibold">Error</p>
+                    <p className="text-red-700 font-semibold">
+                      {t.errorTitle}
+                    </p>
                     <p className="text-red-600 mt-2">{error}</p>
-                    <p className="text-red-500 text-xs mt-4">Check browser console for more details</p>
+                    <p className="text-red-500 text-xs mt-4">
+                      {t.errorHint}
+                    </p>
                   </div>
                 </Card>
               ) : result ? (
@@ -150,7 +166,7 @@ export default function Predict() {
                   <div className="text-center">
                     <div className="text-4xl mb-4">📋</div>
                     <p className="text-muted-foreground">
-                      Fill out the form and submit to see your prediction results here.
+                      {t.emptyResultHint}
                     </p>
                   </div>
                 </Card>

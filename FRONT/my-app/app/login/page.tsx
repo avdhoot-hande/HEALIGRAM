@@ -4,14 +4,19 @@ import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { AuthForm } from "@/components/ui/auth-form"
 import { useEffect, useRef, useState } from "react"
+import { useLanguage } from "@/context/LanguageContext"
+import { translations } from "@/lib/translations"
 
 export default function LoginPage() {
+  const { language } = useLanguage()
+  const t = translations[language]
+
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const glowRef = useRef<HTMLDivElement>(null)
   const [mode, setMode] = useState<"login" | "signup">("login")
 
   /* ===============================
-     CURSOR AURA (PREMIUM)
+     CURSOR AURA
   =============================== */
   useEffect(() => {
     const glow = glowRef.current!
@@ -29,7 +34,7 @@ export default function LoginPage() {
   }, [])
 
   /* ===============================
-     CINEMATIC PARTICLES (ELITE)
+     PARTICLES
   =============================== */
   useEffect(() => {
     const canvas = canvasRef.current!
@@ -56,18 +61,18 @@ export default function LoginPage() {
       s: Math.random() * 0.4 + 0.15,
     }))
 
-    let t = 0
+    let t0 = 0
     let raf: number
 
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
       ctx.globalCompositeOperation = "lighter"
-      t += 0.005
+      t0 += 0.005
 
       particles.forEach((p, i) => {
         p.a += p.s * 0.01
-        p.x += Math.sin(p.a + t) * 0.35
-        p.y += Math.cos(p.a + t) * 0.35
+        p.x += Math.sin(p.a + t0) * 0.35
+        p.y += Math.cos(p.a + t0) * 0.35
 
         const dx = p.x - mouse.x
         const dy = p.y - mouse.y
@@ -115,77 +120,44 @@ export default function LoginPage() {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-indigo-50 text-slate-900">
-      {/* PARTICLES */}
       <canvas ref={canvasRef} className="absolute inset-0 -z-20" />
-
-      {/* CURSOR AURA */}
-      <div
-        ref={glowRef}
-        className="pointer-events-none absolute inset-0 transition duration-300"
-      />
+      <div ref={glowRef} className="pointer-events-none absolute inset-0 transition duration-300" />
 
       <Navbar />
 
       <main className="relative z-10 flex min-h-[calc(100vh-64px)] items-center justify-center px-4">
         <div className="relative w-full max-w-md group">
-          {/* GRADIENT RING */}
           <div className="absolute -inset-1 rounded-[2rem] bg-gradient-to-r from-blue-400/50 via-indigo-400/50 to-sky-400/50 blur-2xl opacity-80 group-hover:opacity-100 transition" />
 
-          {/* CARD */}
-          <div
-            className="
-              relative rounded-[2rem]
-              border border-slate-200/80
-              bg-white/90 backdrop-blur-2xl
-              p-10
-              shadow-[0_40px_120px_-40px_rgba(0,0,0,0.35)]
-              transition-all duration-700
-              group-hover:scale-[1.015]
-
-              [&_input]:bg-white
-              [&_input]:text-slate-900
-              [&_input]:placeholder:text-slate-400
-              [&_input]:border-slate-300
-              [&_input]:focus:border-indigo-600
-              [&_input]:focus:ring-4
-              [&_input]:focus:ring-indigo-500/30
-              [&_input]:caret-indigo-600
-              [&_input]:shadow-sm
-            "
-          >
+          <div className="relative rounded-[2rem] border bg-white/90 backdrop-blur-2xl p-10 shadow-xl">
             <div className="mb-8 text-center">
-              <h1 className="text-4xl font-semibold tracking-tight">
-                Healigram
-              </h1>
+              <h1 className="text-4xl font-semibold">Healigram</h1>
               <p className="mt-2 text-sm text-slate-500">
-                {mode === "login"
-                  ? "Welcome back. Continue your AI risk analysis."
-                  : "Create your secure AI-powered health account."}
+                {mode === "login" ? t.loginWelcome : t.signupWelcome}
               </p>
             </div>
 
             {/* TOGGLE */}
             <div className="mb-6 flex rounded-full bg-slate-100 p-1 text-sm">
-              {["login", "signup"].map(v => (
+              {(["login", "signup"] as const).map(v => (
                 <button
                   key={v}
-                  onClick={() => setMode(v as any)}
+                  onClick={() => setMode(v)}
                   className={`flex-1 rounded-full py-2 transition ${
                     mode === v
                       ? "bg-white shadow text-slate-900"
                       : "text-slate-500 hover:text-slate-900"
                   }`}
                 >
-                  {v === "login" ? "Login" : "Sign up"}
+                  {v === "login" ? t.login : t.signup}
                 </button>
               ))}
             </div>
 
-            {/* FORM */}
             <AuthForm mode={mode} />
 
             <p className="mt-6 text-center text-xs text-slate-400">
-              Medical-grade encryption · No spam · GDPR compliant
+              {t.authFooter}
             </p>
           </div>
         </div>
