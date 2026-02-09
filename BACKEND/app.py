@@ -17,13 +17,14 @@ MODEL_PATH = os.path.join(BASE_DIR, "heart_disease_ensemble_pro.pkl")
 model_data = joblib.load(MODEL_PATH)
 
 rf = model_data["models"]["random_forest"]
-xgb = model_data["models"]["xgb_calibrated"]
+xgb = model_data["models"]["xgb_calibrated"]  # treated as probability regressor
 imputer = model_data["imputer"]
 FEATURE_COLUMNS = model_data["features"]
 THRESHOLD = model_data["threshold"]
 
 print("✅ Model loaded successfully")
 print("Expected features:", FEATURE_COLUMNS)
+print("XGB model type:", type(xgb))
 
 # ===============================
 # Feature Engineering (SAME AS TRAINING)
@@ -84,58 +85,53 @@ def predict():
         df = build_features(data)
         df_imp = imputer.transform(df)
 
-        rf_prob = rf.predict_proba(df_imp)[0][1]
-        
-        # Handle XGBoost prediction - use predict_proba for consistency
-        try:
-            xgb_prob = float(xgb.predict_proba(df_imp)[0][1])
-        except:
-            # Fallback: if predict_proba fails, try predict and normalize
-            xgb_pred = float(xgb.predict(df_imp)[0])
-            xgb_prob = xgb_pred if xgb_pred <= 1.0 else xgb_pred / 100.0
+        # Random Forest probability
+        rf_prob = float(rf.predict_proba(df_imp)[0][1])
 
+        # XGBoost output treated as probability
+        xgb_prob = float(xgb.predict(df_imp)[0])
+
+        # Clamp for safety
+        xgb_prob = max(0.0, min(1.0, xgb_prob))
+
+        # Ensemble
         final_prob = (0.4 * rf_prob) + (0.6 * xgb_prob)
         prediction = int(final_prob >= THRESHOLD)
 
-        # Analyze risk factors with severity levels
+        # Risk factor analysis
         critical_factors = []
         moderate_factors = []
         lifestyle_factors = []
 
-        # Convert age from days to years for proper comparison
         age_years = data["age"] / 365.25
 
-        # CRITICAL FACTORS (Highly predictive of heart disease)
         if data["ap_hi"] >= 140 or data["ap_lo"] >= 90:
             critical_factors.append("High blood pressure")
-        
+
         if age_years > 50:
             critical_factors.append("Age above 50")
-        
+
         if data.get("cholesterol", 1) > 1:
             critical_factors.append("High cholesterol")
-        
+
         if data.get("smoke", 0) == 1:
             critical_factors.append("Smoking")
 
-        # MODERATE FACTORS (Significant contributors)
         bmi = data["weight"] / ((data["height"] / 100) ** 2)
         if bmi >= 30:
             moderate_factors.append("Obesity (BMI ≥ 30)")
         elif bmi >= 25:
-            moderate_factors.append("Overweight (BMI 25-29.9)")
+            moderate_factors.append("Overweight (BMI 25–29.9)")
 
         if data.get("gluc", 1) > 1:
             moderate_factors.append("High blood glucose")
-        
+
         if data.get("alco", 0) == 1:
             moderate_factors.append("Alcohol consumption")
 
-        # LIFESTYLE FACTORS (Contributing factors)
         if data.get("active", 1) == 0:
             lifestyle_factors.append("Physical inactivity")
 
-        # Combine all factors
         risk_factors = critical_factors + moderate_factors + lifestyle_factors
 
         return jsonify({
@@ -152,9 +148,7 @@ def predict():
 
     except Exception as e:
         print("[ERROR]", str(e))
-        return jsonify({
-            "error": str(e)
-        }), 400
+        return jsonify({"error": str(e)}), 400
 
 # ===============================
 # Health Check
@@ -163,7 +157,7 @@ def predict():
 def home():
     return {
         "status": "🩺 Heart Disease Prediction API running",
-        "models": ["Random Forest", "XGBoost (Calibrated)"]
+        "models": ["Random Forest", "XGBoost (Probability Model)"]
     }
 
 # ===============================
