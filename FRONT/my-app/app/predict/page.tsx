@@ -8,6 +8,8 @@ import PredictionForm from "@/components/prediction-form"
 import PredictionResult from "@/components/prediction-result"
 import { useLanguage } from "@/context/LanguageContext"
 import { translations } from "@/lib/translations"
+import NearbyHospitals from "@/components/nearby-hospitals"
+
 
 export default function Predict() {
   const { language } = useLanguage()
@@ -24,6 +26,7 @@ export default function Predict() {
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [submittedData, setSubmittedData] = useState<Record<string, any> | null>(null)
   const [backendStatus, setBackendStatus] =
     useState<"checking" | "connected" | "error">("checking")
 
@@ -63,9 +66,34 @@ export default function Predict() {
     checkBackend()
   }, [])
 
+  const downloadPDF = async () => {
+  if (!submittedData) return
+
+  const response = await fetch("/api/predict/pdf", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(submittedData),
+  })
+
+  const blob = await response.blob()
+  const url = window.URL.createObjectURL(blob)
+
+  const link = document.createElement("a")
+  link.href = url
+  link.download = "health-report.pdf"
+  document.body.appendChild(link)
+  link.click()
+
+  link.remove()
+  window.URL.revokeObjectURL(url)
+}
+
+
   const handleSubmit = async (formData: Record<string, any>) => {
     setLoading(true)
     setError(null)
+    setSubmittedData(formData)
+
 
     try {
       const response = await fetch("/api/predict", {
@@ -133,6 +161,8 @@ export default function Predict() {
               <Card className="p-6 border border-border">
                 <PredictionForm onSubmit={handleSubmit} loading={loading} />
               </Card>
+               <NearbyHospitals />
+              
             </div>
 
             {/* Result Section */}
@@ -160,7 +190,16 @@ export default function Predict() {
                   </div>
                 </Card>
               ) : result ? (
-                <PredictionResult result={result} />
+                <>
+    <PredictionResult result={result} />
+
+    <button
+      onClick={downloadPDF}
+      className="mt-4 w-full bg-primary text-white py-2 rounded"
+    >
+      📄 Download PDF Report
+    </button>
+  </>
               ) : (
                 <Card className="p-8 border border-border flex items-center justify-center min-h-96">
                   <div className="text-center">

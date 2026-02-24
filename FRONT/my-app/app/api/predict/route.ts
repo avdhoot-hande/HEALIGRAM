@@ -7,17 +7,25 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    console.log("[PREDICT API] Received request:", JSON.stringify(body, null, 2));
-    console.log("[PREDICT API] Backend URL:", process.env.BACKEND);
+    // Resolve backend base (prefer BACKEND env). Fall back to localhost.
+    const backendBase =
+      process.env.BACKEND ||
+      process.env.NEXT_PUBLIC_BACKEND ||
+      "http://127.0.0.1:5000";
 
-    if (!process.env.BACKEND) {
-      return NextResponse.json(
-        { error: "Backend URL not configured. Set BACKEND environment variable." },
-        { status: 500 }
-      );
+    // Build final backend URL: if BACKEND already contains '/predict' use it, otherwise append.
+    let backendUrl = backendBase;
+    if (!/\/predict(\/|$)/.test(backendBase)) {
+      backendUrl = backendBase.replace(/\/$/, "") + "/predict";
     }
 
-    const backendRes = await fetch(process.env.BACKEND, {
+    console.log(
+      "[PREDICT API] Received request:",
+      JSON.stringify(body, null, 2),
+    );
+    console.log("[PREDICT API] Backend URL:", backendUrl);
+
+    const backendRes = await fetch(backendUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -32,11 +40,7 @@ export async function POST(req: Request) {
     console.log("[PREDICT API] Backend response:", data);
 
     // Backend already includes categorized risk factors, just pass through
-    return NextResponse.json(
-      { ...data },
-      { status: backendRes.status }
-    );
-
+    return NextResponse.json({ ...data }, { status: backendRes.status });
   } catch (err: any) {
     clearTimeout(timeoutId);
 
@@ -45,7 +49,7 @@ export async function POST(req: Request) {
 
       return NextResponse.json(
         { error: "Backend request timed out" },
-        { status: 504 }
+        { status: 504 },
       );
     }
 
@@ -54,10 +58,10 @@ export async function POST(req: Request) {
     return NextResponse.json(
       {
         error: err.message || "Backend error occurred",
-        details: process.env.NODE_ENV === "development" ? err.message : undefined,
+        details:
+          process.env.NODE_ENV === "development" ? err.message : undefined,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
-  
 }
