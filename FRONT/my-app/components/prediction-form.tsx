@@ -1,15 +1,20 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
+import type React from "react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 interface PredictionFormProps {
-  onSubmit: (data: Record<string, any>) => void
-  loading: boolean
+  onSubmit: (data: Record<string, any>, file?: File) => void;
+  loading: boolean;
 }
 
-export default function PredictionForm({ onSubmit, loading }: PredictionFormProps) {
+export default function PredictionForm({
+  onSubmit,
+  loading,
+}: PredictionFormProps) {
+  const [ecgFile, setEcgFile] = useState<File | null>(null);
+
   const [formData, setFormData] = useState({
     age: "",
     gender: "Male",
@@ -22,18 +27,20 @@ export default function PredictionForm({ onSubmit, loading }: PredictionFormProp
     smoke: "No",
     alco: "No",
     active: "Yes",
-  })
+  });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-    }))
-  }
+    }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     // ✅ BACKEND-COMPATIBLE PAYLOAD
     const apiData = {
@@ -54,20 +61,36 @@ export default function PredictionForm({ onSubmit, loading }: PredictionFormProp
       smoke: formData.smoke === "Yes" ? 1 : 0,
       alco: formData.alco === "Yes" ? 1 : 0,
       active: formData.active === "Yes" ? 1 : 0,
-    }
+    };
 
-    onSubmit(apiData)
-  }
+    onSubmit(apiData, ecgFile || undefined);
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-foreground block">
+          ECG Report Image
+        </label>
+
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setEcgFile(e.target.files?.[0] || null)}
+          className="w-full"
+        />
+      </div>
       {/* Personal Information Section */}
       <div className="space-y-4">
-        
         <div className="grid grid-cols-2 gap-4">
           {/* Age */}
           <div className="space-y-2">
-            <label htmlFor="age" className="text-sm font-medium text-foreground block">Age <span className="text-destructive">*</span></label>
+            <label
+              htmlFor="age"
+              className="text-sm font-medium text-foreground block"
+            >
+              Age <span className="text-destructive">*</span>
+            </label>
             <input
               id="age"
               type="number"
@@ -84,7 +107,12 @@ export default function PredictionForm({ onSubmit, loading }: PredictionFormProp
 
           {/* Gender */}
           <div className="space-y-2">
-            <label htmlFor="gender" className="text-sm font-medium text-foreground block">Gender <span className="text-destructive">*</span></label>
+            <label
+              htmlFor="gender"
+              className="text-sm font-medium text-foreground block"
+            >
+              Gender <span className="text-destructive">*</span>
+            </label>
             <select
               id="gender"
               name="gender"
@@ -101,10 +129,14 @@ export default function PredictionForm({ onSubmit, loading }: PredictionFormProp
 
       {/* Physical Measurements Section */}
       <div className="space-y-4">
-        
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <label htmlFor="height" className="text-sm font-medium text-foreground block">Height (cm) <span className="text-destructive">*</span></label>
+            <label
+              htmlFor="height"
+              className="text-sm font-medium text-foreground block"
+            >
+              Height (cm) <span className="text-destructive">*</span>
+            </label>
             <input
               id="height"
               type="number"
@@ -120,7 +152,12 @@ export default function PredictionForm({ onSubmit, loading }: PredictionFormProp
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="weight" className="text-sm font-medium text-foreground block">Weight (kg) <span className="text-destructive">*</span></label>
+            <label
+              htmlFor="weight"
+              className="text-sm font-medium text-foreground block"
+            >
+              Weight (kg) <span className="text-destructive">*</span>
+            </label>
             <input
               id="weight"
               type="number"
@@ -139,10 +176,14 @@ export default function PredictionForm({ onSubmit, loading }: PredictionFormProp
 
       {/* Blood Pressure Section */}
       <div className="space-y-4">
-        
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <label htmlFor="ap_hi" className="text-sm font-medium text-foreground block">Systolic (mmHg) <span className="text-destructive">*</span></label>
+            <label
+              htmlFor="ap_hi"
+              className="text-sm font-medium text-foreground block"
+            >
+              Systolic (mmHg) <span className="text-destructive">*</span>
+            </label>
             <input
               id="ap_hi"
               type="number"
@@ -158,7 +199,12 @@ export default function PredictionForm({ onSubmit, loading }: PredictionFormProp
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="ap_lo" className="text-sm font-medium text-foreground block">Diastolic (mmHg) <span className="text-destructive">*</span></label>
+            <label
+              htmlFor="ap_lo"
+              className="text-sm font-medium text-foreground block"
+            >
+              Diastolic (mmHg) <span className="text-destructive">*</span>
+            </label>
             <input
               id="ap_lo"
               type="number"
@@ -177,14 +223,18 @@ export default function PredictionForm({ onSubmit, loading }: PredictionFormProp
 
       {/* Lab Results Section */}
       <div className="space-y-4">
-        
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <label htmlFor="cholesterol" className="text-sm font-medium text-foreground block">Cholesterol Level</label>
-            <select 
+            <label
+              htmlFor="cholesterol"
+              className="text-sm font-medium text-foreground block"
+            >
+              Cholesterol Level
+            </label>
+            <select
               id="cholesterol"
-              name="cholesterol" 
-              value={formData.cholesterol} 
+              name="cholesterol"
+              value={formData.cholesterol}
               onChange={handleChange}
               className="w-full px-3 py-2 bg-input border border-input rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition cursor-pointer"
             >
@@ -195,11 +245,16 @@ export default function PredictionForm({ onSubmit, loading }: PredictionFormProp
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="gluc" className="text-sm font-medium text-foreground block">Glucose Level</label>
-            <select 
+            <label
+              htmlFor="gluc"
+              className="text-sm font-medium text-foreground block"
+            >
+              Glucose Level
+            </label>
+            <select
               id="gluc"
-              name="gluc" 
-              value={formData.gluc} 
+              name="gluc"
+              value={formData.gluc}
               onChange={handleChange}
               className="w-full px-3 py-2 bg-input border border-input rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition cursor-pointer"
             >
@@ -213,14 +268,18 @@ export default function PredictionForm({ onSubmit, loading }: PredictionFormProp
 
       {/* Lifestyle Factors Section */}
       <div className="space-y-4">
-        
         <div className="grid grid-cols-3 gap-3">
           <div className="space-y-2">
-            <label htmlFor="smoke" className="text-sm font-medium text-foreground block">Smoking</label>
-            <select 
+            <label
+              htmlFor="smoke"
+              className="text-sm font-medium text-foreground block"
+            >
+              Smoking
+            </label>
+            <select
               id="smoke"
-              name="smoke" 
-              value={formData.smoke} 
+              name="smoke"
+              value={formData.smoke}
               onChange={handleChange}
               className="w-full px-3 py-2 bg-input border border-input rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition cursor-pointer"
             >
@@ -230,11 +289,16 @@ export default function PredictionForm({ onSubmit, loading }: PredictionFormProp
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="alco" className="text-sm font-medium text-foreground block">Alcohol</label>
-            <select 
+            <label
+              htmlFor="alco"
+              className="text-sm font-medium text-foreground block"
+            >
+              Alcohol
+            </label>
+            <select
               id="alco"
-              name="alco" 
-              value={formData.alco} 
+              name="alco"
+              value={formData.alco}
               onChange={handleChange}
               className="w-full px-3 py-2 bg-input border border-input rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition cursor-pointer"
             >
@@ -244,11 +308,16 @@ export default function PredictionForm({ onSubmit, loading }: PredictionFormProp
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="active" className="text-sm font-medium text-foreground block">Active</label>
-            <select 
+            <label
+              htmlFor="active"
+              className="text-sm font-medium text-foreground block"
+            >
+              Active
+            </label>
+            <select
               id="active"
-              name="active" 
-              value={formData.active} 
+              name="active"
+              value={formData.active}
               onChange={handleChange}
               className="w-full px-3 py-2 bg-input border border-input rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition cursor-pointer"
             >
@@ -263,5 +332,5 @@ export default function PredictionForm({ onSubmit, loading }: PredictionFormProp
         {loading ? "Analyzing..." : "Get Prediction"}
       </Button>
     </form>
-  )
+  );
 }
