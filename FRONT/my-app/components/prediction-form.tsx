@@ -7,13 +7,15 @@ import { Button } from "@/components/ui/button";
 interface PredictionFormProps {
   onSubmit: (data: Record<string, any>, file?: File) => void;
   loading: boolean;
+  externalEcgFile?: File | null;
 }
 
 export default function PredictionForm({
   onSubmit,
   loading,
+  externalEcgFile = null,
 }: PredictionFormProps) {
-  const [ecgFile, setEcgFile] = useState<File | null>(null);
+  const [ecgFile, setEcgFile] = useState<File | null>(externalEcgFile);
 
   const [formData, setFormData] = useState({
     age: "",
