@@ -1,3 +1,5 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+
 Flask==3.1.2
 flask-cors==6.0.2
 gunicorn==23.0.0
@@ -7,11 +9,10 @@ pandas==2.2.2
 
 scikit-learn==1.5.2
 joblib==1.4.2
-xgboost==2.1.1
+xgboost-cpu==2.1.1
 
-torch==2.2.2
-torchvision==0.17.2
-torchaudio==2.2.2
+torch==2.2.2+cpu
+torchvision==0.17.2+cpu
 
 opencv-python-headless==4.10.0.84
 
