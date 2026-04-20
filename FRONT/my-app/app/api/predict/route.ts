@@ -6,9 +6,10 @@ export async function POST(req: Request) {
 
   try {
     const backendBase =
+      process.env.NEXT_PUBLIC_BACKEND_URL ||
       process.env.BACKEND ||
       process.env.NEXT_PUBLIC_BACKEND ||
-      "http://127.0.0.1:5000";
+      "https://healigram.onrender.com";
 
     let backendUrl = backendBase;
     if (!/\/predict(\/|$)/.test(backendBase)) {

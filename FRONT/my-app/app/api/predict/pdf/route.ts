@@ -4,9 +4,10 @@ export async function POST(req: Request) {
   const body = await req.json();
 
   const backendBase =
+    process.env.NEXT_PUBLIC_BACKEND_URL ||
     process.env.BACKEND ||
     process.env.NEXT_PUBLIC_BACKEND ||
-    "http://127.0.0.1:5000";
+    "https://healigram.onrender.com";
 
   // Normalize and construct backend URL
   let backendUrl = backendBase.replace(/\/$/, "");
